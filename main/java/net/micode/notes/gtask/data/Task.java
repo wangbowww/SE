@@ -32,20 +32,20 @@ import org.json.JSONException;
 import org.json.JSONObject;
 
 
-public class Task extends Node {
-    private static final String TAG = Task.class.getSimpleName();
+public class Task extends Node {  // 继承自Node类, 表示一个任务对象
+    private static final String TAG = Task.class.getSimpleName(); // 设置Task类的日志标签
 
-    private boolean mCompleted;
+    private boolean mCompleted; // 任务是否已完成
 
-    private String mNotes;
+    private String mNotes; // 任务备注信息
 
-    private JSONObject mMetaInfo;
+    private JSONObject mMetaInfo; // 任务元信息
 
-    private Task mPriorSibling;
+    private Task mPriorSibling; // 前一个兄弟任务
 
-    private TaskList mParent;
+    private TaskList mParent; // 任务所属的任务列表
 
-    public Task() {
+    public Task() { // Task任务对象的初始化
         super();
         mCompleted = false;
         mNotes = null;
@@ -54,7 +54,7 @@ public class Task extends Node {
         mMetaInfo = null;
     }
 
-    public JSONObject getCreateAction(int actionId) {
+    public JSONObject getCreateAction(int actionId) { // 生成创建任务的操作的JSON对象
         JSONObject js = new JSONObject();
 
         try {
@@ -103,7 +103,7 @@ public class Task extends Node {
         return js;
     }
 
-    public JSONObject getUpdateAction(int actionId) {
+    public JSONObject getUpdateAction(int actionId) { // 生成更新任务的操作的JSON对象
         JSONObject js = new JSONObject();
 
         try {
@@ -135,7 +135,7 @@ public class Task extends Node {
         return js;
     }
 
-    public void setContentByRemoteJSON(JSONObject js) {
+    public void setContentByRemoteJSON(JSONObject js) { // 根据远程JSON对象设置任务的内容
         if (js != null) {
             try {
                 // id
@@ -175,7 +175,7 @@ public class Task extends Node {
         }
     }
 
-    public void setContentByLocalJSON(JSONObject js) {
+    public void setContentByLocalJSON(JSONObject js) { // 根据本地JSON对象设置任务的内容
         if (js == null || !js.has(GTaskStringUtils.META_HEAD_NOTE)
                 || !js.has(GTaskStringUtils.META_HEAD_DATA)) {
             Log.w(TAG, "setContentByLocalJSON: nothing is avaiable");
@@ -204,7 +204,7 @@ public class Task extends Node {
         }
     }
 
-    public JSONObject getLocalJSONFromContent() {
+    public JSONObject getLocalJSONFromContent() { // 任务内容生成本地JSON对象
         String name = getName();
         try {
             if (mMetaInfo == null) {
@@ -247,7 +247,7 @@ public class Task extends Node {
         }
     }
 
-    public void setMetaInfo(MetaData metaData) {
+    public void setMetaInfo(MetaData metaData) { // 设置任务的元信息
         if (metaData != null && metaData.getNotes() != null) {
             try {
                 mMetaInfo = new JSONObject(metaData.getNotes());
@@ -258,7 +258,7 @@ public class Task extends Node {
         }
     }
 
-    public int getSyncAction(Cursor c) {
+    public int getSyncAction(Cursor c) { // 获得任务的同步操作类型
         try {
             JSONObject noteInfo = null;
             if (mMetaInfo != null && mMetaInfo.has(GTaskStringUtils.META_HEAD_NOTE)) {
@@ -311,11 +311,12 @@ public class Task extends Node {
         return SYNC_ACTION_ERROR;
     }
 
-    public boolean isWorthSaving() {
+    public boolean isWorthSaving() { // 判断任务是否值得保存
         return mMetaInfo != null || (getName() != null && getName().trim().length() > 0)
                 || (getNotes() != null && getNotes().trim().length() > 0);
     }
 
+    // 设置任务的完成状态、备注信息、前一个兄弟任务和所属任务列表
     public void setCompleted(boolean completed) {
         this.mCompleted = completed;
     }
@@ -332,6 +333,7 @@ public class Task extends Node {
         this.mParent = parent;
     }
 
+    // 用于获取任务的完成状态、备注信息、前一个兄弟任务和所属任务列表。
     public boolean getCompleted() {
         return this.mCompleted;
     }
