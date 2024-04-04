@@ -72,9 +72,9 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 
+// 头部视图持有者，包含笔记修改时间、提醒图标、提醒日期和设置背景颜色的按钮
 public class NoteEditActivity extends Activity implements OnClickListener,
         NoteSettingChangedListener, OnTextViewChangeListener {
-    // 头部视图持有者，包含笔记修改时间、提醒图标、提醒日期和设置背景颜色的按钮
     private class HeadViewHolder {
         public TextView tvModified;  // 显示最后修改时间的文本视图
 
