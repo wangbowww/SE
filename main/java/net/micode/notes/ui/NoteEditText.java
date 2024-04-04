@@ -37,15 +37,17 @@ import net.micode.notes.R;
 import java.util.HashMap;
 import java.util.Map;
 
+// 自定义的EditText，用于处理笔记编辑中的特殊需求，如电话号码、网址、电子邮件链接的识别和操作，以及特殊按键（如回车和删除）的处理。
 public class NoteEditText extends EditText {
     private static final String TAG = "NoteEditText";
-    private int mIndex;
-    private int mSelectionStartBeforeDelete;
+    private int mIndex;// 编辑框在列表中的位置索引
+    private int mSelectionStartBeforeDelete;// 在执行删除操作前光标的位置
 
     private static final String SCHEME_TEL = "tel:" ;
     private static final String SCHEME_HTTP = "http:" ;
     private static final String SCHEME_EMAIL = "mailto:" ;
 
+    // 定义了一些特殊的URI模式及其对应的资源ID，用于创建上下文菜单
     private static final Map<String, Integer> sSchemaActionResMap = new HashMap<String, Integer>();
     static {
         sSchemaActionResMap.put(SCHEME_TEL, R.string.note_link_tel);
@@ -56,6 +58,7 @@ public class NoteEditText extends EditText {
     /**
      * Call by the {@link NoteEditActivity} to delete or add edit text
      */
+    // 定义了编辑文本变化的监听器接口，包括删除操作、回车键操作和文本变化时的回调方法
     public interface OnTextViewChangeListener {
         /**
          * Delete current edit text when {@link KeyEvent#KEYCODE_DEL} happens
@@ -75,17 +78,20 @@ public class NoteEditText extends EditText {
         void onTextChange(int index, boolean hasText);
     }
 
-    private OnTextViewChangeListener mOnTextViewChangeListener;
-
+    private OnTextViewChangeListener mOnTextViewChangeListener;  // 文本视图变化的监听器实例
+    
+    // 构造函数
     public NoteEditText(Context context) {
         super(context, null);
         mIndex = 0;
     }
 
+    // 设置编辑框的位置索引
     public void setIndex(int index) {
         mIndex = index;
     }
 
+    // 设置文本视图变化的监听器
     public void setOnTextViewChangeListener(OnTextViewChangeListener listener) {
         mOnTextViewChangeListener = listener;
     }
@@ -100,6 +106,7 @@ public class NoteEditText extends EditText {
     }
 
     @Override
+    // 处理触摸事件，用于处理链接点击等
     public boolean onTouchEvent(MotionEvent event) {
         switch (event.getAction()) {
             case MotionEvent.ACTION_DOWN:
@@ -122,6 +129,7 @@ public class NoteEditText extends EditText {
     }
 
     @Override
+    // 按键按下时的处理，特别是对回车键和删除键的处理
     public boolean onKeyDown(int keyCode, KeyEvent event) {
         switch (keyCode) {
             case KeyEvent.KEYCODE_ENTER:
@@ -139,6 +147,7 @@ public class NoteEditText extends EditText {
     }
 
     @Override
+    // 按键释放时的处理，特别是对回车键和删除键的处理
     public boolean onKeyUp(int keyCode, KeyEvent event) {
         switch(keyCode) {
             case KeyEvent.KEYCODE_DEL:
@@ -168,6 +177,7 @@ public class NoteEditText extends EditText {
     }
 
     @Override
+    // 焦点变化时的处理，用于处理编辑框文本为空时的特殊情况
     protected void onFocusChanged(boolean focused, int direction, Rect previouslyFocusedRect) {
         if (mOnTextViewChangeListener != null) {
             if (!focused && TextUtils.isEmpty(getText())) {
@@ -180,6 +190,7 @@ public class NoteEditText extends EditText {
     }
 
     @Override
+    // 创建上下文菜单，特别是对于文本中包含的特殊链接（电话号码、网址、电子邮件）
     protected void onCreateContextMenu(ContextMenu menu) {
         if (getText() instanceof Spanned) {
             int selStart = getSelectionStart();
