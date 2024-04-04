@@ -449,9 +449,6 @@ public class DateTimePicker extends FrameLayout {
     public boolean is24HourView () {
         return mIs24HourView;
     }
-    public boolean is24HourView () {
-        return mIs24HourView;
-    }
 
     /**
     * 设置时间格式是24小时制还是AM/PM模式。
