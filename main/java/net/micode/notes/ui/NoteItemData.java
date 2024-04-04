@@ -26,7 +26,9 @@ import net.micode.notes.data.Notes.NoteColumns;
 import net.micode.notes.tool.DataUtils;
 
 
+// NoteItemData 类封装了笔记应用中每个笔记项的数据。
 public class NoteItemData {
+    // 数据库查询时需要的列。
     static final String [] PROJECTION = new String [] {
         NoteColumns.ID,
         NoteColumns.ALERTED_DATE,
@@ -55,8 +57,8 @@ public class NoteItemData {
     private static final int WIDGET_ID_COLUMN             = 10;
     private static final int WIDGET_TYPE_COLUMN           = 11;
 
-    private long mId;
-    private long mAlertDate;
+    private long mId; // 笔记ID
+    private long mAlertDate; // 提醒日期
     private int mBgColorId;
     private long mCreatedDate;
     private boolean mHasAttachment;
@@ -75,7 +77,10 @@ public class NoteItemData {
     private boolean mIsOnlyOneItem;
     private boolean mIsOneNoteFollowingFolder;
     private boolean mIsMultiNotesFollowingFolder;
-
+ 
+    // 根据数据库查询结果Cursor初始化NoteItemData实例。
+    // 初始化笔记的各种属性，如ID、警告日期、背景颜色等。
+    // 特别处理电话记录笔记，从联系人数据库中获取电话号码对应的名称。
     public NoteItemData(Context context, Cursor cursor) {
         mId = cursor.getLong(ID_COLUMN);
         mAlertDate = cursor.getLong(ALERTED_DATE_COLUMN);
@@ -109,6 +114,8 @@ public class NoteItemData {
         checkPostion(cursor);
     }
 
+    // 检查当前笔记在Cursor中的位置，设置是否是第一项、最后一项、唯一一项的标志。
+    // 如果笔记类型为NOTE且不是第一项，则检查它前面的项是否为文件夹或系统类型的笔记，以决定是否紧跟在文件夹后面。
     private void checkPostion(Cursor cursor) {
         mIsLastItem = cursor.isLast() ? true : false;
         mIsFirstItem = cursor.isFirst() ? true : false;
@@ -134,10 +141,12 @@ public class NoteItemData {
         }
     }
 
+    // 检查当前笔记是否是紧跟在一个文件夹之后的唯一笔记。
     public boolean isOneFollowingFolder() {
         return mIsOneNoteFollowingFolder;
     }
 
+    // 检查当前笔记是否是紧跟在一个文件夹之后，并且该文件夹后面有多个笔记。
     public boolean isMultiFollowingFolder() {
         return mIsMultiNotesFollowingFolder;
     }
@@ -214,10 +223,12 @@ public class NoteItemData {
         return (mAlertDate > 0);
     }
 
+    // 检查当前笔记是否是电话记录笔记。
     public boolean isCallRecord() {
         return (mParentId == Notes.ID_CALL_RECORD_FOLDER && !TextUtils.isEmpty(mPhoneNumber));
     }
 
+    // 从Cursor中获取笔记的类型。
     public static int getNoteType(Cursor cursor) {
         return cursor.getInt(TYPE_COLUMN);
     }
