@@ -13,15 +13,12 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
 package net.micode.notes.ui;
 
 import android.app.Activity;
 import android.app.AlertDialog;
 import android.content.Context;
 import android.content.DialogInterface;
-import android.content.DialogInterface.OnClickListener;
-import android.content.DialogInterface.OnDismissListener;
 import android.content.Intent;
 import android.media.AudioManager;
 import android.media.MediaPlayer;
@@ -44,49 +41,25 @@ import java.io.IOException;
  * 当闹钟响起时，这个活动会显示一个包含笔记片段的对话框，并播放闹钟声音。
  * 用户可以选择关闭闹钟或者进入应用查看完整的笔记内容。
  */
-
-
-// 定义 AlarmAlertActivity 类，用于展示闹钟提醒
-public class AlarmAlertActivity extends Activity implements OnClickListener, OnDismissListener {
-    private long mNoteId;           // 存储笔记ID
-    private String mSnippet;        // 存储笔记片段
+public class AlarmAlertActivity extends Activity implements DialogInterface.OnClickListener, DialogInterface.OnDismissListener {
+    private long mNoteId; // 存储笔记ID
+    private String mSnippet; // 存储笔记片段
     private static final int SNIPPET_PREW_MAX_LEN = 60; // 定义片段预览的最大长度
-    MediaPlayer mPlayer;            // 媒体播放器，用于播放闹钟声音
-
+    private MediaPlayer mPlayer = null;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        requestWindowFeature(Window.FEATURE_NO_TITLE); // 不显示应用标题
+        requestWindowFeature(Window.FEATURE_NO_TITLE);
 
         final Window win = getWindow();
-        win.addFlags(WindowManager.LayoutParams.FLAG_SHOW_WHEN_LOCKED);// 锁屏时也显示窗口
+        win.addFlags(WindowManager.LayoutParams.FLAG_SHOW_WHEN_LOCKED);
 
-        // 如果屏幕未点亮，则添加一些窗口标志以点亮屏幕
-        if (!isScreenOn()) {
-            win.addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON
-                    | WindowManager.LayoutParams.FLAG_TURN_SCREEN_ON
-                    | WindowManager.LayoutParams.FLAG_ALLOW_LOCK_WHILE_SCREEN_ON
-                    | WindowManager.LayoutParams.FLAG_LAYOUT_INSET_DECOR);
-        }
+        manageScreenBrightness();
 
-        Intent intent = getIntent();// 获取启动该活动的Intent
+        handleIntent();
 
-        // 尝试从Intent中获取笔记ID和摘要，如果失败则捕获异常并返回
-        try {
-            mNoteId = Long.valueOf(intent.getData().getPathSegments().get(1));
-            mSnippet = DataUtils.getSnippetById(this.getContentResolver(), mNoteId);
-            // 如果片段长度超过最大预览长度，则截断并添加省略符
-            mSnippet = mSnippet.length() > SNIPPET_PREW_MAX_LEN ? mSnippet.substring(0,
-                    SNIPPET_PREW_MAX_LEN) + getResources().getString(R.string.notelist_string_info)
-                    : mSnippet;
-        } catch (IllegalArgumentException e) {
-            e.printStackTrace();
-            return;
-        }
-
-        mPlayer = new MediaPlayer();
-         // 如果笔记在数据库中可见，则显示操作对话框并播放闹钟声音，否则结束活动
+        // 如果笔记在数据库中可见，则显示操作对话框并播放闹钟声音，否则结束活动
         if (DataUtils.visibleInNoteDatabase(getContentResolver(), mNoteId, Notes.TYPE_NOTE)) {
             showActionDialog();
             playAlarmSound();
@@ -95,83 +68,111 @@ public class AlarmAlertActivity extends Activity implements OnClickListener, OnD
         }
     }
 
-      // 检查屏幕是否已经点亮
+    /**
+     * 管理屏幕亮度设置，确保在需要时亮起屏幕。
+     */
+    private void manageScreenBrightness() {
+        final Window win = getWindow();
+        if (!isScreenOn()) {
+            win.addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON
+                    | WindowManager.LayoutParams.FLAG_TURN_SCREEN_ON
+                    | WindowManager.LayoutParams.FLAG_ALLOW_LOCK_WHILE_SCREEN_ON
+                    | WindowManager.LayoutParams.FLAG_LAYOUT_INSET_DECOR);
+        }
+    }
+
+    /**
+     * 从Intent中获取笔记ID和片段。
+     */
+    private void handleIntent() {
+        Intent intent = getIntent();
+        try {
+            mNoteId = Long.valueOf(intent.getData().getPathSegments().get(1));
+            mSnippet = DataUtils.getSnippetById(this.getContentResolver(), mNoteId);
+            mSnippet = mSnippet.length() > SNIPPET_PREW_MAX_LEN ? mSnippet.substring(0, SNIPPET_PREW_MAX_LEN) + getResources().getString(R.string.notelist_string_info) : mSnippet;
+        } catch (IllegalArgumentException e) {
+            e.printStackTrace();
+            finish();
+        }
+    }
+
+    /**
+     * 检查屏幕是否已经点亮。
+     */
     private boolean isScreenOn() {
         PowerManager pm = (PowerManager) getSystemService(Context.POWER_SERVICE);
-        return pm.isScreenOn();
+        return pm.isInteractive(); // Updated to use isInteractive for API level 20 and above
     }
 
-     // 播放闹钟声音
+    /**
+     * 播放闹钟声音。
+     */
     private void playAlarmSound() {
-        Uri url = RingtoneManager.getActualDefaultRingtoneUri(this, RingtoneManager.TYPE_ALARM);
+        Uri alarmSoundUri = RingtoneManager.getActualDefaultRingtoneUri(this, RingtoneManager.TYPE_ALARM);
+        mPlayer = new MediaPlayer();
 
-        int silentModeStreams = Settings.System.getInt(getContentResolver(),
-                Settings.System.MODE_RINGER_STREAMS_AFFECTED, 0);
-
-        // 根据用户的静音设置来设置媒体播放器的音频流类型
-        if ((silentModeStreams & (1 << AudioManager.STREAM_ALARM)) != 0) {
-            mPlayer.setAudioStreamType(silentModeStreams);
-        } else {
-            mPlayer.setAudioStreamType(AudioManager.STREAM_ALARM);
-        }
         try {
-            mPlayer.setDataSource(this, url); // 设置数据源为闹钟声音
-            mPlayer.prepare();// 准备媒体播放器
-            mPlayer.setLooping(true);// 设置循环播放
-            mPlayer.start(); // 开始播放
-        } catch (IllegalArgumentException e) {
-            // TODO Auto-generated catch block
+            mPlayer.setDataSource(this, alarmSoundUri);
+            mPlayer.setAudioStreamType(AudioManager.STREAM_ALARM);
+            mPlayer.prepare();
+            mPlayer.setLooping(true);
+            mPlayer.start();
+        } catch (Exception e) {
             e.printStackTrace();
-        } catch (SecurityException e) {
-            // TODO Auto-generated catch block
-            e.printStackTrace();
-        } catch (IllegalStateException e) {
-            // TODO Auto-generated catch block
-            e.printStackTrace();
-        } catch (IOException e) {
-            // TODO Auto-generated catch block
-            e.printStackTrace();
+        } finally {
+            if (mPlayer != null) {
+                mPlayer.setOnCompletionListener(mp -> {
+                    stopAlarmSound();
+                });
+            }
         }
     }
-     // 显示操作对话框
+
+    /**
+     * 显示操作对话框。
+     */
     private void showActionDialog() {
         AlertDialog.Builder dialog = new AlertDialog.Builder(this);
-        dialog.setTitle(R.string.app_name);// 设置对话框标题
-        dialog.setMessage(mSnippet);// 设置对话框消息内容为笔记片段
-        dialog.setPositiveButton(R.string.notealert_ok, this);// 设置肯定按钮
-        if (isScreenOn()) {// 如果屏幕已点亮，设置否定按钮
+        dialog.setTitle(R.string.app_name);
+        dialog.setMessage(mSnippet);
+        dialog.setPositiveButton(R.string.notealert_ok, this);
+        if (isScreenOn()) {
             dialog.setNegativeButton(R.string.notealert_enter, this);
         }
-        dialog.show().setOnDismissListener(this);// 显示对话框并设置关闭监听
+        dialog.show().setOnDismissListener(this);
     }
 
-    // 处理对话框按钮点击事件
+    @Override
     public void onClick(DialogInterface dialog, int which) {
-        switch (which) {
-            case DialogInterface.BUTTON_NEGATIVE:// 如果点击了"进入"按钮
-                Intent intent = new Intent(this, NoteEditActivity.class);
-                intent.setAction(Intent.ACTION_VIEW);
-                intent.putExtra(Intent.EXTRA_UID, mNoteId); // 将笔记ID传递给NoteEditActivity
-                startActivity(intent);// 启动NoteEditActivity
-                break;
-            default:
-                break;
+        if (which == DialogInterface.BUTTON_NEGATIVE) {
+            Intent intent = new Intent(this, NoteEditActivity.class);
+            intent.setAction(Intent.ACTION_VIEW);
+            intent.putExtra(Intent.EXTRA_UID, mNoteId);
+            startActivity(intent);
         }
+        dialog.dismiss();
     }
 
-      // 对话框关闭时停止播放闹钟声音并结束活动
+    @Override
     public void onDismiss(DialogInterface dialog) {
         stopAlarmSound();
         finish();
     }
 
-    
-    // 停止播放闹钟声音
+    /**
+     * 停止播放闹钟声音并释放资源。
+     */
     private void stopAlarmSound() {
         if (mPlayer != null) {
             mPlayer.stop();
             mPlayer.release();
             mPlayer = null;
         }
+    }
+
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
+        stopAlarmSound(); // Ensure media player is released when Activity is destroyed
     }
 }
