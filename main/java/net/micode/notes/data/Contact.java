@@ -25,6 +25,11 @@ import android.util.Log;
 
 import java.util.HashMap;
 
+/**
+ * 联系人工具类。方法 getContact用于获取给定电话号码对应的联系人名称
+ * 这个方法首先检查一个静态 HashMap sContactCache 中是否已经缓存了该电话号码对应的联系人名称，如果缓存中存在，则直接返回该名称。
+ * 如果缓存中不存在，它会构建一个查询字符串，用于查询 Android 系统的联系人数据库。然后执行查询，并根据结果获取联系人名称。如果查询结果不为空，它会将电话号码和联系人名称存入缓存中，并返回联系人名称。
+ */
 public class Contact {
     private static HashMap<String, String> sContactCache;
     private static final String TAG = "Contact";

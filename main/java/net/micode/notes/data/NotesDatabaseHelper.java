@@ -46,6 +46,7 @@ public class NotesDatabaseHelper extends SQLiteOpenHelper {
         "CREATE TABLE " + TABLE.NOTE + "(" +
             NoteColumns.ID + " INTEGER PRIMARY KEY," +
             NoteColumns.PARENT_ID + " INTEGER NOT NULL DEFAULT 0," +
+            NoteColumns.PASSWORD + " VARCHAR(50) DEFAULT NULL," +
             NoteColumns.ALERTED_DATE + " INTEGER NOT NULL DEFAULT 0," +
             NoteColumns.BG_COLOR_ID + " INTEGER NOT NULL DEFAULT 0," +
             NoteColumns.CREATED_DATE + " INTEGER NOT NULL DEFAULT (strftime('%s','now') * 1000)," +
