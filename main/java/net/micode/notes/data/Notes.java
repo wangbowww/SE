@@ -75,6 +75,13 @@ public class Notes {
         public static final String PARENT_ID = "parent_id";
 
         /**
+         * lzier
+         * The ID's password
+         * <P> Type: STRING  </P>
+         */
+        public static final String PASSWORD = "password";
+
+        /**
          * Created data for note or folder
          * <P> Type: INTEGER (long) </P>
          */

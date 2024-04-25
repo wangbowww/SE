@@ -34,9 +34,13 @@ import net.micode.notes.ui.NotesListAdapter.AppWidgetAttribute;
 import java.util.ArrayList;
 import java.util.HashSet;
 
-
+/**
+ * 对笔记应用的数据库进行操作，包括创建、移动、删除笔记，以及与电话通话记录相关的操作
+* */
 public class DataUtils {
     public static final String TAG = "DataUtils";
+
+    //批量删除笔记
     public static boolean batchDeleteNotes(ContentResolver resolver, HashSet<Long> ids) {
         if (ids == null) {
             Log.d(TAG, "the ids is null");
@@ -49,10 +53,15 @@ public class DataUtils {
 
         ArrayList<ContentProviderOperation> operationList = new ArrayList<ContentProviderOperation>();
         for (long id : ids) {
-            if(id == Notes.ID_ROOT_FOLDER) {
+            //lzier
+            if(id == Notes.ID_ROOT_FOLDER || id == Notes.ID_CALL_RECORD_FOLDER) {
                 Log.e(TAG, "Don't delete system folder root");
                 continue;
             }
+/*            if(id == Notes.ID_ROOT_FOLDER ) {
+                Log.e(TAG, "Don't delete system folder root");
+                continue;
+            }*/
             ContentProviderOperation.Builder builder = ContentProviderOperation
                     .newDelete(ContentUris.withAppendedId(Notes.CONTENT_NOTE_URI, id));
             operationList.add(builder.build());
@@ -72,6 +81,7 @@ public class DataUtils {
         return false;
     }
 
+    //将笔记移动到指定文件夹
     public static void moveNoteToFoler(ContentResolver resolver, long id, long srcFolderId, long desFolderId) {
         ContentValues values = new ContentValues();
         values.put(NoteColumns.PARENT_ID, desFolderId);
@@ -80,6 +90,7 @@ public class DataUtils {
         resolver.update(ContentUris.withAppendedId(Notes.CONTENT_NOTE_URI, id), values, null, null);
     }
 
+    //批量将笔记移动到指定文件夹
     public static boolean batchMoveToFolder(ContentResolver resolver, HashSet<Long> ids,
             long folderId) {
         if (ids == null) {
@@ -111,6 +122,7 @@ public class DataUtils {
         return false;
     }
 
+    //获取用户创建的文件夹数量（不包括系统文件夹）
     /**
      * Get the all folder count except system folders {@link Notes#TYPE_SYSTEM}}
      */
@@ -136,6 +148,7 @@ public class DataUtils {
         return count;
     }
 
+    //检查指定类型的笔记是否存在于数据库中（不在回收站中）
     public static boolean visibleInNoteDatabase(ContentResolver resolver, long noteId, int type) {
         Cursor cursor = resolver.query(ContentUris.withAppendedId(Notes.CONTENT_NOTE_URI, noteId),
                 null,
@@ -153,6 +166,7 @@ public class DataUtils {
         return exist;
     }
 
+    //检查指定的笔记是否存在于数据库中
     public static boolean existInNoteDatabase(ContentResolver resolver, long noteId) {
         Cursor cursor = resolver.query(ContentUris.withAppendedId(Notes.CONTENT_NOTE_URI, noteId),
                 null, null, null, null);
@@ -167,6 +181,7 @@ public class DataUtils {
         return exist;
     }
 
+    //检查指定的数据是否存在于数据库中
     public static boolean existInDataDatabase(ContentResolver resolver, long dataId) {
         Cursor cursor = resolver.query(ContentUris.withAppendedId(Notes.CONTENT_DATA_URI, dataId),
                 null, null, null, null);
@@ -181,6 +196,7 @@ public class DataUtils {
         return exist;
     }
 
+    //检查是否存在指定名称的可见文件夹
     public static boolean checkVisibleFolderName(ContentResolver resolver, String name) {
         Cursor cursor = resolver.query(Notes.CONTENT_NOTE_URI, null,
                 NoteColumns.TYPE + "=" + Notes.TYPE_FOLDER +
@@ -197,6 +213,7 @@ public class DataUtils {
         return exist;
     }
 
+    //获取文件夹内的小部件信息
     public static HashSet<AppWidgetAttribute> getFolderNoteWidget(ContentResolver resolver, long folderId) {
         Cursor c = resolver.query(Notes.CONTENT_NOTE_URI,
                 new String[] { NoteColumns.WIDGET_ID, NoteColumns.WIDGET_TYPE },
@@ -224,6 +241,7 @@ public class DataUtils {
         return set;
     }
 
+    //根据笔记 ID 获取电话号码
     public static String getCallNumberByNoteId(ContentResolver resolver, long noteId) {
         Cursor cursor = resolver.query(Notes.CONTENT_DATA_URI,
                 new String [] { CallNote.PHONE_NUMBER },
@@ -243,6 +261,7 @@ public class DataUtils {
         return "";
     }
 
+    //根据电话号码和通话日期获取笔记 ID
     public static long getNoteIdByPhoneNumberAndCallDate(ContentResolver resolver, String phoneNumber, long callDate) {
         Cursor cursor = resolver.query(Notes.CONTENT_DATA_URI,
                 new String [] { CallNote.NOTE_ID },
@@ -264,6 +283,7 @@ public class DataUtils {
         return 0;
     }
 
+    //根据笔记 ID 获取摘要
     public static String getSnippetById(ContentResolver resolver, long noteId) {
         Cursor cursor = resolver.query(Notes.CONTENT_NOTE_URI,
                 new String [] { NoteColumns.SNIPPET },
@@ -282,6 +302,7 @@ public class DataUtils {
         throw new IllegalArgumentException("Note is not found with id: " + noteId);
     }
 
+    //格式化摘要字符串
     public static String getFormattedSnippet(String snippet) {
         if (snippet != null) {
             snippet = snippet.trim();

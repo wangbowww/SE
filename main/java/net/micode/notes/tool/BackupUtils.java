@@ -35,7 +35,9 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.PrintStream;
 
-
+/**
+ * 备份工具类 BackupUtils，用于将笔记数据导出到文本文件中
+ */
 public class BackupUtils {
     private static final String TAG = "BackupUtils";
     // Singleton stuff
@@ -63,6 +65,7 @@ public class BackupUtils {
     // Backup or restore success
     public static final int STATE_SUCCESS                      = 4;
 
+    //TextExport 内部类实现文本导出的具体细节，包括将文件夹、笔记及其内容导出到文本文件中。
     private TextExport mTextExport;
 
     private BackupUtils(Context context) {
@@ -73,18 +76,22 @@ public class BackupUtils {
         return Environment.MEDIA_MOUNTED.equals(Environment.getExternalStorageState());
     }
 
+    //将笔记数据导出到文本文件中
     public int exportToText() {
         return mTextExport.exportToText();
     }
 
+    //获取导出的文本文件名
     public String getExportedTextFileName() {
         return mTextExport.mFileName;
     }
 
+    //获取导出的文本文件目录
     public String getExportedTextFileDir() {
         return mTextExport.mFileDirectory;
     }
 
+    //TextExport 内部类实现文本导出的具体细节，包括将文件夹、笔记及其内容导出到文本文件中。
     private static class TextExport {
         private static final String[] NOTE_PROJECTION = {
                 NoteColumns.ID,
@@ -285,6 +292,7 @@ public class BackupUtils {
         /**
          * Get a print stream pointed to the file {@generateExportedTextFile}
          */
+        //获取输出到文本文件的打印流
         private PrintStream getExportToTextPrintStream() {
             File file = generateFileMountedOnSDcard(mContext, R.string.file_path,
                     R.string.file_name_txt_format);
@@ -312,6 +320,7 @@ public class BackupUtils {
     /**
      * Generate the text file to store imported data
      */
+    //方法生成导出文本文件的路径
     private static File generateFileMountedOnSDcard(Context context, int filePathResId, int fileNameFormatResId) {
         StringBuilder sb = new StringBuilder();
         sb.append(Environment.getExternalStorageDirectory());

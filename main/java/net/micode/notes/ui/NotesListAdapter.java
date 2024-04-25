@@ -30,31 +30,32 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
 
-
+// 用于展示笔记列表的适配器类
 public class NotesListAdapter extends CursorAdapter {
-    private static final String TAG = "NotesListAdapter";
-    private Context mContext;
-    private HashMap<Integer, Boolean> mSelectedIndex;
-    private int mNotesCount;
-    private boolean mChoiceMode;
+    private static final String TAG = "NotesListAdapter";// 日志标签
+    private Context mContext;// 上下文对象
+    private HashMap<Integer, Boolean> mSelectedIndex;// 用于记录选中项的索引
+    private int mNotesCount;// 笔记数量
+    private boolean mChoiceMode;// 是否为选择模式
 
+    // 用于存储小部件属性的静态内部类
     public static class AppWidgetAttribute {
         public int widgetId;
         public int widgetType;
     };
-
+    // 构造函数
     public NotesListAdapter(Context context) {
         super(context, null);
         mSelectedIndex = new HashMap<Integer, Boolean>();
         mContext = context;
         mNotesCount = 0;
     }
-
+    // 为每个条目创建新视图
     @Override
     public View newView(Context context, Cursor cursor, ViewGroup parent) {
         return new NotesListItem(context);
     }
-
+    // 将数据绑定到视图
     @Override
     public void bindView(View view, Context context, Cursor cursor) {
         if (view instanceof NotesListItem) {
@@ -63,21 +64,21 @@ public class NotesListAdapter extends CursorAdapter {
                     isSelectedItem(cursor.getPosition()));
         }
     }
-
+    // 设置条目的选中状态
     public void setCheckedItem(final int position, final boolean checked) {
         mSelectedIndex.put(position, checked);
         notifyDataSetChanged();
     }
-
+    // 检查是否处于选择模式
     public boolean isInChoiceMode() {
         return mChoiceMode;
     }
-
+    // 设置选择模式
     public void setChoiceMode(boolean mode) {
         mSelectedIndex.clear();
         mChoiceMode = mode;
     }
-
+    // 选择所有条目
     public void selectAll(boolean checked) {
         Cursor cursor = getCursor();
         for (int i = 0; i < getCount(); i++) {
@@ -88,7 +89,7 @@ public class NotesListAdapter extends CursorAdapter {
             }
         }
     }
-
+    // 获取所有选中条目的ID
     public HashSet<Long> getSelectedItemIds() {
         HashSet<Long> itemSet = new HashSet<Long>();
         for (Integer position : mSelectedIndex.keySet()) {
@@ -104,7 +105,7 @@ public class NotesListAdapter extends CursorAdapter {
 
         return itemSet;
     }
-
+    // 获取选中的小部件属性集
     public HashSet<AppWidgetAttribute> getSelectedWidget() {
         HashSet<AppWidgetAttribute> itemSet = new HashSet<AppWidgetAttribute>();
         for (Integer position : mSelectedIndex.keySet()) {
@@ -127,7 +128,7 @@ public class NotesListAdapter extends CursorAdapter {
         }
         return itemSet;
     }
-
+    // 获取选中条目的数量
     public int getSelectedCount() {
         Collection<Boolean> values = mSelectedIndex.values();
         if (null == values) {
@@ -142,31 +143,31 @@ public class NotesListAdapter extends CursorAdapter {
         }
         return count;
     }
-
+    // 检查是否所有条目都已选中
     public boolean isAllSelected() {
         int checkedCount = getSelectedCount();
         return (checkedCount != 0 && checkedCount == mNotesCount);
     }
-
+    // 检查指定位置的条目是否被选中
     public boolean isSelectedItem(final int position) {
         if (null == mSelectedIndex.get(position)) {
             return false;
         }
         return mSelectedIndex.get(position);
     }
-
+    // 当内容改变时，重新计算笔记数量
     @Override
     protected void onContentChanged() {
         super.onContentChanged();
         calcNotesCount();
     }
-
+    // 更换光标时调用
     @Override
     public void changeCursor(Cursor cursor) {
         super.changeCursor(cursor);
         calcNotesCount();
     }
-
+    // 计算笔记的数量
     private void calcNotesCount() {
         mNotesCount = 0;
         for (int i = 0; i < getCount(); i++) {

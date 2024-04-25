@@ -27,34 +27,38 @@ import android.widget.PopupMenu.OnMenuItemClickListener;
 
 import net.micode.notes.R;
 
+// 下拉菜单类
 public class DropdownMenu {
-    private Button mButton;
-    private PopupMenu mPopupMenu;
-    private Menu mMenu;
+    private Button mButton; // 触发下拉菜单的按钮
+    private PopupMenu mPopupMenu; // 弹出式菜单
+    private Menu mMenu; // 菜单对象
 
+    // 构造函数，初始化下拉菜单
     public DropdownMenu(Context context, Button button, int menuId) {
-        mButton = button;
-        mButton.setBackgroundResource(R.drawable.dropdown_icon);
-        mPopupMenu = new PopupMenu(context, mButton);
-        mMenu = mPopupMenu.getMenu();
-        mPopupMenu.getMenuInflater().inflate(menuId, mMenu);
-        mButton.setOnClickListener(new OnClickListener() {
+        mButton = button; // 设置按钮
+        mButton.setBackgroundResource(R.drawable.dropdown_icon); // 设置按钮背景为下拉图标
+        mPopupMenu = new PopupMenu(context, mButton); // 创建弹出式菜单
+        mMenu = mPopupMenu.getMenu(); // 获取菜单
+        mPopupMenu.getMenuInflater().inflate(menuId, mMenu); // 根据menuId填充菜单
+        mButton.setOnClickListener(new OnClickListener() { // 设置按钮点击监听器
             public void onClick(View v) {
-                mPopupMenu.show();
+                mPopupMenu.show(); // 显示菜单
             }
         });
     }
-
+    // 设置菜单项点击监听器
     public void setOnDropdownMenuItemClickListener(OnMenuItemClickListener listener) {
         if (mPopupMenu != null) {
             mPopupMenu.setOnMenuItemClickListener(listener);
         }
     }
 
+    // 根据ID查找菜单项
     public MenuItem findItem(int id) {
         return mMenu.findItem(id);
     }
 
+    // 设置标题
     public void setTitle(CharSequence title) {
         mButton.setText(title);
     }

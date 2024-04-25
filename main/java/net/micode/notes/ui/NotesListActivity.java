@@ -79,158 +79,179 @@ import java.io.InputStreamReader;
 import java.util.HashSet;
 
 public class NotesListActivity extends Activity implements OnClickListener, OnItemLongClickListener {
-    private static final int FOLDER_NOTE_LIST_QUERY_TOKEN = 0;
+    // 定义查询标识符
+    private static final int FOLDER_NOTE_LIST_QUERY_TOKEN = 0; // 文件夹内笔记列表查询标识
+    private static final int FOLDER_LIST_QUERY_TOKEN      = 1; // 文件夹列表查询标识
 
-    private static final int FOLDER_LIST_QUERY_TOKEN      = 1;
+    // 定义菜单项标识符
+    private static final int MENU_FOLDER_DELETE = 0; // 删除文件夹菜单项
+    private static final int MENU_FOLDER_VIEW = 1; // 查看文件夹菜单项
+    private static final int MENU_FOLDER_CHANGE_NAME = 2; // 更改文件夹名称菜单项
 
-    private static final int MENU_FOLDER_DELETE = 0;
-
-    private static final int MENU_FOLDER_VIEW = 1;
-
-    private static final int MENU_FOLDER_CHANGE_NAME = 2;
-
+    // 用于控制是否显示添加笔记的介绍
     private static final String PREFERENCE_ADD_INTRODUCTION = "net.micode.notes.introduction";
 
+    // 定义列表编辑状态的枚举
     private enum ListEditState {
-        NOTE_LIST, SUB_FOLDER, CALL_RECORD_FOLDER
+        NOTE_LIST, // 显示笔记列表
+        SUB_FOLDER, // 显示子文件夹列表
+        CALL_RECORD_FOLDER // 显示电话记录文件夹
     };
 
+    // 当前列表编辑状态
     private ListEditState mState;
 
+    // 后台查询处理器
     private BackgroundQueryHandler mBackgroundQueryHandler;
 
+    // 笔记列表适配器
     private NotesListAdapter mNotesListAdapter;
 
+    // 显示笔记列表的ListView
     private ListView mNotesListView;
 
+    // 添加新笔记的按钮
     private Button mAddNewNote;
 
+    // 用于处理触摸事件分发
     private boolean mDispatch;
 
+    // 记录触摸事件起始和结束的Y坐标
     private int mOriginY;
-
     private int mDispatchY;
 
+    // 标题栏文本视图
     private TextView mTitleBar;
 
+    // 当前显示的文件夹ID
     private long mCurrentFolderId;
 
+    // 内容解析器
     private ContentResolver mContentResolver;
 
+    // 上下文操作模式回调
     private ModeCallback mModeCallBack;
 
+    // 日志标签
     private static final String TAG = "NotesListActivity";
 
+    // ListView滚动速率
     public static final int NOTES_LISTVIEW_SCROLL_RATE = 30;
 
+    // 当前焦点的笔记数据项
     private NoteItemData mFocusNoteDataItem;
 
-    private static final String NORMAL_SELECTION = NoteColumns.PARENT_ID + "=?";
-
+    // 查询条件常量
+    private static final String NORMAL_SELECTION = NoteColumns.PARENT_ID + "=?"; // 常规文件夹选择
     private static final String ROOT_FOLDER_SELECTION = "(" + NoteColumns.TYPE + "<>"
             + Notes.TYPE_SYSTEM + " AND " + NoteColumns.PARENT_ID + "=?)" + " OR ("
             + NoteColumns.ID + "=" + Notes.ID_CALL_RECORD_FOLDER + " AND "
-            + NoteColumns.NOTES_COUNT + ">0)";
+            + NoteColumns.NOTES_COUNT + ">0)"; // 根文件夹选择
 
-    private final static int REQUEST_CODE_OPEN_NODE = 102;
-    private final static int REQUEST_CODE_NEW_NODE  = 103;
+    // 请求码常量
+    private final static int REQUEST_CODE_OPEN_NODE = 102; // 打开笔记的请求码
+    private final static int REQUEST_CODE_NEW_NODE  = 103; // 新建笔记的请求码
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.note_list);
-        initResources();
+        setContentView(R.layout.note_list); // 设置使用的布局文件
+        initResources(); // 初始化资源
 
         /**
-         * Insert an introduction when user firstly use this application
+         * 在用户首次使用此应用时插入一个介绍
          */
-        setAppInfoFromRawRes();
+        setAppInfoFromRawRes(); // 从资源文件中设置应用信息
     }
 
     @Override
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
         if (resultCode == RESULT_OK
                 && (requestCode == REQUEST_CODE_OPEN_NODE || requestCode == REQUEST_CODE_NEW_NODE)) {
+            // 如果返回结果是OK，且请求码是打开或新建节点，重置适配器的光标
             mNotesListAdapter.changeCursor(null);
         } else {
-            super.onActivityResult(requestCode, resultCode, data);
+            super.onActivityResult(requestCode, resultCode, data); // 其他情况交给超类处理
         }
     }
 
     private void setAppInfoFromRawRes() {
         SharedPreferences sp = PreferenceManager.getDefaultSharedPreferences(this);
-        if (!sp.getBoolean(PREFERENCE_ADD_INTRODUCTION, false)) {
+        if (!sp.getBoolean(PREFERENCE_ADD_INTRODUCTION, false)) { // 检查是否已经添加过介绍
             StringBuilder sb = new StringBuilder();
             InputStream in = null;
             try {
-                 in = getResources().openRawResource(R.raw.introduction);
+                in = getResources().openRawResource(R.raw.introduction); // 打开介绍文件资源
                 if (in != null) {
                     InputStreamReader isr = new InputStreamReader(in);
                     BufferedReader br = new BufferedReader(isr);
-                    char [] buf = new char[1024];
+                    char [] buf = new char[1024]; // 读取缓冲
                     int len = 0;
-                    while ((len = br.read(buf)) > 0) {
-                        sb.append(buf, 0, len);
+                    while ((len = br.read(buf)) > 0) { // 循环读取文件
+                        sb.append(buf, 0, len); // 将读取的内容追加到StringBuilder
                     }
                 } else {
-                    Log.e(TAG, "Read introduction file error");
+                    Log.e(TAG, "Read introduction file error"); // 文件读取错误
                     return;
                 }
             } catch (IOException e) {
                 e.printStackTrace();
                 return;
             } finally {
-                if(in != null) {
+                if (in != null) {
                     try {
-                        in.close();
+                        in.close(); // 关闭流
                     } catch (IOException e) {
-                        // TODO Auto-generated catch block
                         e.printStackTrace();
                     }
                 }
             }
 
+            // 创建一个空的笔记
             WorkingNote note = WorkingNote.createEmptyNote(this, Notes.ID_ROOT_FOLDER,
                     AppWidgetManager.INVALID_APPWIDGET_ID, Notes.TYPE_WIDGET_INVALIDE,
                     ResourceParser.RED);
-            note.setWorkingText(sb.toString());
-            if (note.saveNote()) {
-                sp.edit().putBoolean(PREFERENCE_ADD_INTRODUCTION, true).commit();
+            note.setWorkingText(sb.toString()); // 设置笔记内容为读取的介绍文本
+            if (note.saveNote()) { // 保存笔记
+                sp.edit().putBoolean(PREFERENCE_ADD_INTRODUCTION, true).commit(); // 标记介绍已添加
             } else {
-                Log.e(TAG, "Save introduction note error");
+                Log.e(TAG, "Save introduction note error"); // 保存笔记失败
                 return;
             }
         }
     }
 
+
     @Override
     protected void onStart() {
         super.onStart();
-        startAsyncNotesListQuery();
+        startAsyncNotesListQuery();// 在Activity启动时开始异步加载笔记列表
     }
 
+     // 初始化资源和UI组件
     private void initResources() {
-        mContentResolver = this.getContentResolver();
-        mBackgroundQueryHandler = new BackgroundQueryHandler(this.getContentResolver());
-        mCurrentFolderId = Notes.ID_ROOT_FOLDER;
-        mNotesListView = (ListView) findViewById(R.id.notes_list);
+        mContentResolver = this.getContentResolver(); // 获取内容解析器
+        mBackgroundQueryHandler = new BackgroundQueryHandler(this.getContentResolver()); // 创建后台查询处理器
+        mCurrentFolderId = Notes.ID_ROOT_FOLDER; // 设置当前文件夹ID为根文件夹
+        mNotesListView = (ListView) findViewById(R.id.notes_list); // 获取笔记列表视图
+        // 为笔记列表添加页脚视图
         mNotesListView.addFooterView(LayoutInflater.from(this).inflate(R.layout.note_list_footer, null),
                 null, false);
-        mNotesListView.setOnItemClickListener(new OnListItemClickListener());
-        mNotesListView.setOnItemLongClickListener(this);
-        mNotesListAdapter = new NotesListAdapter(this);
-        mNotesListView.setAdapter(mNotesListAdapter);
-        mAddNewNote = (Button) findViewById(R.id.btn_new_note);
-        mAddNewNote.setOnClickListener(this);
-        mAddNewNote.setOnTouchListener(new NewNoteOnTouchListener());
-        mDispatch = false;
-        mDispatchY = 0;
-        mOriginY = 0;
-        mTitleBar = (TextView) findViewById(R.id.tv_title_bar);
-        mState = ListEditState.NOTE_LIST;
-        mModeCallBack = new ModeCallback();
+        mNotesListView.setOnItemClickListener(new OnListItemClickListener()); // 设置项点击监听器
+        mNotesListView.setOnItemLongClickListener(this); // 设置长按监听器
+        mNotesListAdapter = new NotesListAdapter(this); // 创建列表适配器
+        mNotesListView.setAdapter(mNotesListAdapter); // 设置适配器
+        mAddNewNote = (Button) findViewById(R.id.btn_new_note); // 获取添加新笔记按钮
+        mAddNewNote.setOnClickListener(this); // 设置点击监听器
+        mAddNewNote.setOnTouchListener(new NewNoteOnTouchListener()); // 设置触摸监听器
+        mDispatch = false; // 初始化触摸事件分发标志
+        mDispatchY = 0; // 初始化Y坐标偏移
+        mOriginY = 0; // 初始化原始Y坐标
+        mTitleBar = (TextView) findViewById(R.id.tv_title_bar); // 获取标题栏视图
+        mState = ListEditState.NOTE_LIST; // 设置列表状态为显示笔记列表
+        mModeCallBack = new ModeCallback(); // 创建上下文操作模式回调实例
     }
-
+    
     private class ModeCallback implements ListView.MultiChoiceModeListener, OnMenuItemClickListener {
         private DropdownMenu mDropDownMenu;
         private ActionMode mActionMode;
