@@ -53,10 +53,15 @@ public class DataUtils {
 
         ArrayList<ContentProviderOperation> operationList = new ArrayList<ContentProviderOperation>();
         for (long id : ids) {
-            if(id == Notes.ID_ROOT_FOLDER) {
+            //lzier
+            if(id == Notes.ID_ROOT_FOLDER || id == Notes.ID_CALL_RECORD_FOLDER) {
                 Log.e(TAG, "Don't delete system folder root");
                 continue;
             }
+/*            if(id == Notes.ID_ROOT_FOLDER ) {
+                Log.e(TAG, "Don't delete system folder root");
+                continue;
+            }*/
             ContentProviderOperation.Builder builder = ContentProviderOperation
                     .newDelete(ContentUris.withAppendedId(Notes.CONTENT_NOTE_URI, id));
             operationList.add(builder.build());

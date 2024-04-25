@@ -238,6 +238,8 @@ public class WorkingNote {
         if (date != mAlertDate) {
             mAlertDate = date;
             mNote.setNoteValue(NoteColumns.ALERTED_DATE, String.valueOf(mAlertDate));
+            //lzier
+            mModifiedDate = System.currentTimeMillis();
         }
         if (mNoteSettingStatusListener != null) {
             mNoteSettingStatusListener.onClockAlertChanged(date, set);

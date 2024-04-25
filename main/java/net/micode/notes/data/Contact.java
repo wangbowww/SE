@@ -1,32 +1,19 @@
-/*
- * Copyright (c) 2010-2011, The MiCode Open Source Community (www.micode.net)
- *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *        http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- */
-
 package net.micode.notes.data;
 
 import android.content.Context;
+import android.database.ContentObserver;
 import android.database.Cursor;
+import android.os.Handler;
 import android.provider.ContactsContract.CommonDataKinds.Phone;
 import android.provider.ContactsContract.Data;
 import android.telephony.PhoneNumberUtils;
 import android.util.Log;
 
+import java.lang.ref.WeakReference;
 import java.util.HashMap;
 
 /**
- * 联系人工具类。方法 getContact用于获取给定电话号码对应的联系人名称
+ * 联系人工具类。方法 getContact 用于获取给定电话号码对应的联系人名称
  * 这个方法首先检查一个静态 HashMap sContactCache 中是否已经缓存了该电话号码对应的联系人名称，如果缓存中存在，则直接返回该名称。
  * 如果缓存中不存在，它会构建一个查询字符串，用于查询 Android 系统的联系人数据库。然后执行查询，并根据结果获取联系人名称。如果查询结果不为空，它会将电话号码和联系人名称存入缓存中，并返回联系人名称。
  */
@@ -35,26 +22,38 @@ public class Contact {
     private static final String TAG = "Contact";
 
     private static final String CALLER_ID_SELECTION = "PHONE_NUMBERS_EQUAL(" + Phone.NUMBER
-    + ",?) AND " + Data.MIMETYPE + "='" + Phone.CONTENT_ITEM_TYPE + "'"
-    + " AND " + Data.RAW_CONTACT_ID + " IN "
+            + ",?) AND " + Data.MIMETYPE + "='" + Phone.CONTENT_ITEM_TYPE + "'"
+            + " AND " + Data.RAW_CONTACT_ID + " IN "
             + "(SELECT raw_contact_id "
             + " FROM phone_lookup"
             + " WHERE min_match = '+')";
 
-    public static String getContact(Context context, String phoneNumber) {
-        if(sContactCache == null) {
-            sContactCache = new HashMap<String, String>();
+    private static WeakReference<Context> sContextRef;
+
+    public static void init(Context context) {
+        sContextRef = new WeakReference<>(context.getApplicationContext());
+    }
+
+    public static String getContact(String phoneNumber) {
+        if (sContactCache == null) {
+            sContactCache = new HashMap<>();
         }
 
-        if(sContactCache.containsKey(phoneNumber)) {
+        if (sContactCache.containsKey(phoneNumber)) {
             return sContactCache.get(phoneNumber);
+        }
+
+        Context context = sContextRef.get();
+        if (context == null) {
+            Log.e(TAG, "Context is null");
+            return null;
         }
 
         String selection = CALLER_ID_SELECTION.replace("+",
                 PhoneNumberUtils.toCallerIDMinMatch(phoneNumber));
         Cursor cursor = context.getContentResolver().query(
                 Data.CONTENT_URI,
-                new String [] { Phone.DISPLAY_NAME },
+                new String[] { Phone.DISPLAY_NAME },
                 selection,
                 new String[] { phoneNumber },
                 null);
@@ -73,6 +72,20 @@ public class Contact {
         } else {
             Log.d(TAG, "No contact matched with number:" + phoneNumber);
             return null;
+        }
+    }
+
+    //lzier
+    public static class ContactObserver extends ContentObserver {
+        public ContactObserver(Handler handler) {
+            super(handler);
+        }
+
+        @Override
+        public void onChange(boolean selfChange) {
+            super.onChange(selfChange);
+            // 清除联系人缓存
+            sContactCache = null;
         }
     }
 }

@@ -218,7 +218,33 @@ public class NotesDatabaseHelper extends SQLiteOpenHelper {
         Log.d(TAG, "note table has been created");
     }
 
+    //lzier
     private void reCreateNoteTableTriggers(SQLiteDatabase db) {
+        db.beginTransaction();
+        try {
+            db.execSQL("DROP TRIGGER IF EXISTS increase_folder_count_on_update");
+            db.execSQL("DROP TRIGGER IF EXISTS decrease_folder_count_on_update");
+            db.execSQL("DROP TRIGGER IF EXISTS decrease_folder_count_on_delete");
+            db.execSQL("DROP TRIGGER IF EXISTS delete_data_on_delete");
+            db.execSQL("DROP TRIGGER IF EXISTS increase_folder_count_on_insert");
+            db.execSQL("DROP TRIGGER IF EXISTS folder_delete_notes_on_delete");
+            db.execSQL("DROP TRIGGER IF EXISTS folder_move_notes_on_trash");
+
+            db.execSQL(NOTE_INCREASE_FOLDER_COUNT_ON_UPDATE_TRIGGER);
+            db.execSQL(NOTE_DECREASE_FOLDER_COUNT_ON_UPDATE_TRIGGER);
+            db.execSQL(NOTE_DECREASE_FOLDER_COUNT_ON_DELETE_TRIGGER);
+            db.execSQL(NOTE_DELETE_DATA_ON_DELETE_TRIGGER);
+            db.execSQL(NOTE_INCREASE_FOLDER_COUNT_ON_INSERT_TRIGGER);
+            db.execSQL(FOLDER_DELETE_NOTES_ON_DELETE_TRIGGER);
+            db.execSQL(FOLDER_MOVE_NOTES_ON_TRASH_TRIGGER);
+
+            db.setTransactionSuccessful();
+        } finally {
+            //lzier
+            db.endTransaction();
+        }
+    }
+/*    private void reCreateNoteTableTriggers(SQLiteDatabase db) {
         db.execSQL("DROP TRIGGER IF EXISTS increase_folder_count_on_update");
         db.execSQL("DROP TRIGGER IF EXISTS decrease_folder_count_on_update");
         db.execSQL("DROP TRIGGER IF EXISTS decrease_folder_count_on_delete");
@@ -234,7 +260,7 @@ public class NotesDatabaseHelper extends SQLiteOpenHelper {
         db.execSQL(NOTE_INCREASE_FOLDER_COUNT_ON_INSERT_TRIGGER);
         db.execSQL(FOLDER_DELETE_NOTES_ON_DELETE_TRIGGER);
         db.execSQL(FOLDER_MOVE_NOTES_ON_TRASH_TRIGGER);
-    }
+    }*/
 
     private void createSystemFolder(SQLiteDatabase db) {
         ContentValues values = new ContentValues();
