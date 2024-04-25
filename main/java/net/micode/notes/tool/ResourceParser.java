@@ -22,23 +22,31 @@ import android.preference.PreferenceManager;
 import net.micode.notes.R;
 import net.micode.notes.ui.NotesPreferenceActivity;
 
+/**
+ * 资源解析工具类 ResourceParser，用于解析笔记应用中的资源，包括背景颜色、背景图像、文本大小等
+ */
 public class ResourceParser {
-
+    //常量YELLOW，BLUE，WHITE，GREEN和RED表示不同的颜色
     public static final int YELLOW           = 0;
     public static final int BLUE             = 1;
     public static final int WHITE            = 2;
     public static final int GREEN            = 3;
     public static final int RED              = 4;
 
+    //常量BG_DEFAULT_COLOR表示默认的背景颜色
     public static final int BG_DEFAULT_COLOR = YELLOW;
 
+    //常量TEXT_SMALL，TEXT_MEDIUM，TEXT_LARGE和TEXT_SUPER表示不同的文本大小
     public static final int TEXT_SMALL       = 0;
     public static final int TEXT_MEDIUM      = 1;
     public static final int TEXT_LARGE       = 2;
     public static final int TEXT_SUPER       = 3;
 
+    //默认背景字体大小
     public static final int BG_DEFAULT_FONT_SIZE = TEXT_MEDIUM;
 
+    //背景贴图类，用于处理笔记的背景资源
+    //用于存储笔记编辑器中使用的不同背景图像的资源ID
     public static class NoteBgResources {
         private final static int [] BG_EDIT_RESOURCES = new int [] {
             R.drawable.edit_yellow,
@@ -56,15 +64,17 @@ public class ResourceParser {
             R.drawable.edit_title_red
         };
 
+        //获取某个id对应的背景源图
         public static int getNoteBgResource(int id) {
             return BG_EDIT_RESOURCES[id];
         }
-
+        //获取某个id对应的背景标题
         public static int getNoteTitleBgResource(int id) {
             return BG_EDIT_TITLE_RESOURCES[id];
         }
     }
 
+    //获取默认背景id
     public static int getDefaultBgId(Context context) {
         if (PreferenceManager.getDefaultSharedPreferences(context).getBoolean(
                 NotesPreferenceActivity.PREFERENCE_SET_BG_COLOR_KEY, false)) {
@@ -74,6 +84,7 @@ public class ResourceParser {
         }
     }
 
+    //根据ID检索背景资源和标题资源的方法
     public static class NoteItemBgResources {
         private final static int [] BG_FIRST_RESOURCES = new int [] {
             R.drawable.list_yellow_up,
@@ -128,6 +139,8 @@ public class ResourceParser {
         }
     }
 
+    //根据用户的偏好获取默认的背景ID
+    //如果偏好设置为随机选择背景颜色，则从可用资源中随机选择一个ID；否则，返回默认颜色的ID
     public static class WidgetBgResources {
         private final static int [] BG_2X_RESOURCES = new int [] {
             R.drawable.widget_2x_yellow,
@@ -154,6 +167,7 @@ public class ResourceParser {
         }
     }
 
+    //文本外观源
     public static class TextAppearanceResources {
         private final static int [] TEXTAPPEARANCE_RESOURCES = new int [] {
             R.style.TextAppearanceNormal,

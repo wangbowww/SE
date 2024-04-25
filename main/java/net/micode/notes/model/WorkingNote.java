@@ -31,7 +31,10 @@ import net.micode.notes.data.Notes.NoteColumns;
 import net.micode.notes.data.Notes.TextNote;
 import net.micode.notes.tool.ResourceParser.NoteBgResources;
 
-
+/**
+ * 用于在Android应用中管理笔记的相关操作。它包含了对笔记的创建、加载、保存等功能。
+ *
+ */
 public class WorkingNote {
     // Note for the working note
     private Note mNote;
@@ -187,6 +190,7 @@ public class WorkingNote {
         return new WorkingNote(context, id, 0);
     }
 
+    //保存笔记到数据库中
     public synchronized boolean saveNote() {
         if (isWorthSaving()) {
             if (!existInDatabase()) {
@@ -229,10 +233,13 @@ public class WorkingNote {
         mNoteSettingStatusListener = l;
     }
 
+    //设置笔记的提醒日期
     public void setAlertDate(long date, boolean set) {
         if (date != mAlertDate) {
             mAlertDate = date;
             mNote.setNoteValue(NoteColumns.ALERTED_DATE, String.valueOf(mAlertDate));
+            //lzier
+            mModifiedDate = System.currentTimeMillis();
         }
         if (mNoteSettingStatusListener != null) {
             mNoteSettingStatusListener.onClockAlertChanged(date, set);
@@ -247,6 +254,7 @@ public class WorkingNote {
         }
     }
 
+    //设置笔记的背景颜色
     public void setBgColorId(int id) {
         if (id != mBgColorId) {
             mBgColorId = id;
@@ -257,6 +265,7 @@ public class WorkingNote {
         }
     }
 
+    //设置笔记的清单模式
     public void setCheckListMode(int mode) {
         if (mMode != mode) {
             if (mNoteSettingStatusListener != null) {
@@ -267,6 +276,7 @@ public class WorkingNote {
         }
     }
 
+    //设置笔记所关联的小部件的类型
     public void setWidgetType(int type) {
         if (type != mWidgetType) {
             mWidgetType = type;
@@ -274,6 +284,7 @@ public class WorkingNote {
         }
     }
 
+    //设置笔记所关联的小部件的ID
     public void setWidgetId(int id) {
         if (id != mWidgetId) {
             mWidgetId = id;
@@ -342,6 +353,7 @@ public class WorkingNote {
         return mWidgetType;
     }
 
+    //此接口定义了一系列笔记设置变化时的回调方法，如背景颜色变化、设置提醒、创建小部件等
     public interface NoteSettingChangedListener {
         /**
          * Called when the background color of current note has just changed

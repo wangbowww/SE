@@ -16,6 +16,9 @@
 
 package net.micode.notes.tool;
 
+/**
+ * 字符串常量类GTaskStringUtils，用于表示Google任务（Google Task）中的JSON数据的键名
+ */
 public class GTaskStringUtils {
 
     public final static String GTASK_JSON_ACTION_ID = "action_id";

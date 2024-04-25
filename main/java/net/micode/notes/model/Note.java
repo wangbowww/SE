@@ -127,6 +127,9 @@ public class Note {
             return false;
         }
 
+        // lzier
+        mNoteData.clear();
+
         return true;
     }
 
@@ -144,6 +147,14 @@ public class Note {
         public NoteData() {
             mTextDataValues = new ContentValues();
             mCallDataValues = new ContentValues();
+            mTextDataId = 0;
+            mCallDataId = 0;
+        }
+
+        //lzier
+        void clear(){
+            mTextDataValues.clear();
+            mCallDataValues.clear();
             mTextDataId = 0;
             mCallDataId = 0;
         }
