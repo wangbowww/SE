@@ -32,7 +32,7 @@ import org.json.JSONException;
 import org.json.JSONObject;
 
 
-public class Task extends Node {  // 继承自Node类, 表示一个任务对象
+public class Task extends Node {
     private static final String TAG = Task.class.getSimpleName(); // 设置Task类的日志标签
 
     private boolean mCompleted; // 任务是否已完成

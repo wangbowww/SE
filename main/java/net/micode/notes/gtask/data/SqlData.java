@@ -36,41 +36,48 @@ import org.json.JSONObject;
 
 
 public class SqlData {
-    private static final String TAG = SqlData.class.getSimpleName();
+    private static final String TAG = SqlData.class.getSimpleName(); // 标识日志的 TAG
 
-    private static final int INVALID_ID = -99999;
+    private static final int INVALID_ID = -99999; // 无效 ID
 
+    // 数据投影的列
     public static final String[] PROJECTION_DATA = new String[] {
             DataColumns.ID, DataColumns.MIME_TYPE, DataColumns.CONTENT, DataColumns.DATA1,
             DataColumns.DATA3
     };
 
+    // 数据 ID 列索引
     public static final int DATA_ID_COLUMN = 0;
 
+    // 数据 MIME 类型列索引
     public static final int DATA_MIME_TYPE_COLUMN = 1;
 
+    // 数据内容列索引
     public static final int DATA_CONTENT_COLUMN = 2;
 
+    // 数据内容 DATA1 列索引
     public static final int DATA_CONTENT_DATA_1_COLUMN = 3;
 
+    // 数据内容 DATA3 列索引
     public static final int DATA_CONTENT_DATA_3_COLUMN = 4;
 
-    private ContentResolver mContentResolver;
+    private ContentResolver mContentResolver; // 内容解析器
 
-    private boolean mIsCreate;
+    private boolean mIsCreate; // 是否是创建操作
 
-    private long mDataId;
+    private long mDataId; // 数据 ID
 
-    private String mDataMimeType;
+    private String mDataMimeType; // 数据 MIME 类型
 
-    private String mDataContent;
+    private String mDataContent; // 数据内容
 
-    private long mDataContentData1;
+    private long mDataContentData1; // 数据内容 DATA1
 
-    private String mDataContentData3;
+    private String mDataContentData3; // 数据内容 DATA3
 
-    private ContentValues mDiffDataValues;
+    private ContentValues mDiffDataValues; // 差异数据值
 
+    // 构造函数，初始化默认值
     public SqlData(Context context) {
         mContentResolver = context.getContentResolver();
         mIsCreate = true;
@@ -82,6 +89,7 @@ public class SqlData {
         mDiffDataValues = new ContentValues();
     }
 
+    // 从 Cursor 中加载数据
     public SqlData(Context context, Cursor c) {
         mContentResolver = context.getContentResolver();
         mIsCreate = false;
@@ -89,6 +97,7 @@ public class SqlData {
         mDiffDataValues = new ContentValues();
     }
 
+    // 从 Cursor 中加载数据到成员变量
     private void loadFromCursor(Cursor c) {
         mDataId = c.getLong(DATA_ID_COLUMN);
         mDataMimeType = c.getString(DATA_MIME_TYPE_COLUMN);
@@ -97,6 +106,7 @@ public class SqlData {
         mDataContentData3 = c.getString(DATA_CONTENT_DATA_3_COLUMN);
     }
 
+    // 设置数据内容
     public void setContent(JSONObject js) throws JSONException {
         long dataId = js.has(DataColumns.ID) ? js.getLong(DataColumns.ID) : INVALID_ID;
         if (mIsCreate || mDataId != dataId) {
@@ -130,6 +140,7 @@ public class SqlData {
         mDataContentData3 = dataContentData3;
     }
 
+    // 获取数据内容
     public JSONObject getContent() throws JSONException {
         if (mIsCreate) {
             Log.e(TAG, "it seems that we haven't created this in database yet");
@@ -144,6 +155,7 @@ public class SqlData {
         return js;
     }
 
+    // 提交数据
     public void commit(long noteId, boolean validateVersion, long version) {
 
         if (mIsCreate) {
@@ -183,6 +195,7 @@ public class SqlData {
         mIsCreate = false;
     }
 
+    // 获取数据 ID
     public long getId() {
         return mDataId;
     }
