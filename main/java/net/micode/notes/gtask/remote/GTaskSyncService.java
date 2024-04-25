@@ -166,3 +166,4 @@ public class GTaskSyncService extends Service {
         return mSyncProgress;
     }
 }
+

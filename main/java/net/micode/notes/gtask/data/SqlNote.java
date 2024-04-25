@@ -158,6 +158,19 @@ public class SqlNote {
         mDiffNoteValues = new ContentValues();
     }
 
+    // 从 id 中加载数据
+    public SqlNote(Context context, long id) {
+        mContext = context;
+        mContentResolver = context.getContentResolver();
+        mIsCreate = false;
+        loadFromCursor(id);
+        mDataList = new ArrayList<SqlData>();
+        if (mType == Notes.TYPE_NOTE)
+            loadDataContent();
+        mDiffNoteValues = new ContentValues();
+
+    }
+
     // 从 Cursor 中加载数据到成员变量
     private void loadFromCursor(Cursor c) {
         mId = c.getLong(ID_COLUMN);
